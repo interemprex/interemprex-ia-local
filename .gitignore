@@ -1,0 +1,15 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+data/
+models/
+logs/
+*.gguf
+*.safetensors
+*.pem
+*.key
+.claude/settings.local.json
