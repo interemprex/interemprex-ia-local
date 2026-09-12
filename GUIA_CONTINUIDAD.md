@@ -38,7 +38,7 @@ Claude Code debe trabajar sobre esta misma carpeta remota cuando su instalación
 
 Antes de cada tarea: leer ESTADO_PROYECTO.md y las instrucciones. Al terminar: registrar cambios, archivos, evidencia, pendientes y siguiente paso. Un asistente edita y el otro revisa después. Si cambia el ejecutor, el usuario le entrega el estado actualizado. No hay sincronización automática entre chats.
 
-Para Claude web, reemplazar la instantánea anterior por una nueva cuando cambie el proyecto. Para copias separadas de código, configurar GitHub privado y compartir commits cuando llegue ese paso; hoy GitHub no está verificado.
+Para Claude web, reemplazar la instantánea anterior por una nueva cuando cambie el proyecto. Para copias separadas de código, el repositorio privado interemprex/interemprex-ia-local ya está configurado; compartir cambios requiere commit, push y pull.
 
 ## Siguiente desarrollo propuesto
 Crear un chat de terminal en Python que conserve mensajes durante la sesión, permita salir y controle el tamaño del historial. Explicar primero el concepto de lista de mensajes. Mantener el modelo y la API actuales. Memoria entre reinicios, documentos con fuentes, CRM y automatizaciones quedan para etapas posteriores.

@@ -53,4 +53,4 @@ Conviene tenerlas presentes antes de confiar en el chat:
 ## Colaboración
 Los archivos en disco son la referencia común. Los adjuntos de Claude web son copias que hay que actualizar a mano; no hay sincronización automática entre chats. Un solo asistente edita el árbol de trabajo a la vez y los demás revisan después.
 
-El repositorio es privado. `.venv`, modelos, credenciales, claves y documentos privados quedan fuera del control de versiones mediante `.gitignore`.
+Repositorio privado en GitHub: https://github.com/interemprex/interemprex-ia-local (cuenta `interemprex`). `.venv`, modelos, credenciales, claves y documentos privados quedan fuera del control de versiones mediante `.gitignore`.

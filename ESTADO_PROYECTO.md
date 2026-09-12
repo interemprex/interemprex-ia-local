@@ -47,7 +47,7 @@ PasswordAuthentication no está fijado en el cliente. No afirmar que se haya des
 
 ## Situación de componentes y pendientes
 - Ollama instalado y probado: versión 0.33.3, API local, qwen3:8b y ejecución en GPU verificados por capturas. Integración Python verificada el 10 de septiembre; detalles al final.
-- GitHub: repositorio privado, autenticación, remoto y commits pendientes. Git instalado no implica repositorio creado.
+- GitHub: SUPERADO el 12 de septiembre de 2026. Repositorio privado creado, remoto conectado y primer commit publicado. Ver la sección final.
 - Claude Code de Anthropic aparece en «SSH: ORDENADOR-F - INSTALLED». Según la respuesta de Claude Code compartida por el usuario, la sesión funciona y ejecutó una comprobación de hostname y carpeta, además de leer los archivos originales. Acceso operativo de lectura reportado; no se ha probado escritura ni se ha inspeccionado el método de autenticación.
 - Claude: archivos del traspaso visibles en Contexto del proyecto «IA L» según captura del usuario. Su respuesta posterior, compartida como texto, resume el estado correctamente y reconoce disponer únicamente de copias. Traspaso documental recibido; acceso de Claude Code a la carpeta original aún no verificado.
 - Inicio de Ollama sin sesión interactiva, disponibilidad tras reinicio, suspensión y acceso desde otra red pendientes. F debe estar encendido y conectado; no se ha configurado encendido remoto.
@@ -197,4 +197,63 @@ Las pruebas 1 y 5 usan un script de comprobación que vive en la carpeta tempora
 - El historial completo crece en memoria durante la sesión. Es texto y la sesión es corta, pero no está acotado.
 - La estimación de tokens no es exacta; ver tabla anterior.
 - Falta decidir dónde guardar pruebas automáticas dentro del repositorio.
-- Arranque persistente de Ollama y GitHub: sin cambios, siguen pendientes.
+- Arranque persistente de Ollama: sigue pendiente. GitHub: resuelto el 12 de septiembre de 2026, ver la sección final.
+
+## Repositorio Git y publicación en GitHub — 12 de septiembre de 2026 — Claude Code (Opus 5) en F
+
+Todo ejecutado en F (DESKTOP-T6C436J). Claude Code sigue como único editor. No se ha tocado `chat_ollama.py` ni `probar_ollama.py`, ni se ha reinstalado ningún componente existente.
+
+### Situación de partida
+- No existía repositorio: `git rev-parse --show-toplevel` devolvió *not a git repository*, ni en la carpeta ni en ninguna superior.
+- `.gitignore` ya existía y cubría `.venv/`, `venv/`, `__pycache__/`, `.env`, `data/`, `models/`, `logs/`, `*.gguf`, `*.safetensors`, `*.pem`, `*.key`.
+- Barrido de secretos sobre los archivos candidatos: sin claves privadas ni tokens. Los únicos aciertos fueron falsos positivos (`PasswordAuthentication no`, que es una directiva de configuración, y las constantes del estimador de tokens).
+
+### Incidencia de permisos encontrada
+La carpeta del proyecto pertenece a la cuenta `DESKTOP-T6C436J\CodexSandboxOffline` (SID terminado en 1003), no a `fer` (terminado en 1001). Es un resto del entorno restringido de Codex. Git lo rechazó con *dubious ownership* y se negó a operar.
+
+Resuelto con la excepción que el propio Git recomienda, autorizada expresamente por el usuario: `git config --global --add safe.directory C:/Users/Fer/Documents/Codex/2026-09-07/crear/outputs/interemprex-ia-local`. **La causa real no está corregida**: el propietario de la carpeta sigue siendo la cuenta del sandbox. Si algún día se clona o se mueve el proyecto, puede reaparecer.
+
+### Repositorio local
+- `git init -b main`. Rama `main` desde el principio, sin renombrar.
+- Identidad del autor: **ya existía** en la configuración global, `dbenitezc68-beep <dbenitezc68@gmail.com>`. No se inventó ni se modificó.
+- Archivos incluidos, 10: `.gitignore`, `AGENTS.md`, `CLAUDE.md`, `ESTADO_PROYECTO.md`, `GUIA_CONTINUIDAD.md`, `README.md`, `TRASPASO_CLAUDE.md`, `chat_ollama.py`, `comprobar_entorno.py`, `probar_ollama.py`.
+- Excluidos y confirmados como ignorados: `.venv/` y `__pycache__/`. No hay modelos, credenciales ni documentos privados dentro del árbol.
+- `README.md` reescrito: programas, uso del chat, explicación del historial y una sección explícita de limitaciones (sin memoria entre sesiones, sin RAG ni fuentes, olvido dentro de la sesión, estimación de tokens aproximada, sin streaming, Ollama no arranca solo).
+- Primer commit: `b48e5ead2f185a4832be3af7556858aabfec1ace` (`b48e5ea`), 10 archivos, 594 inserciones.
+
+### Autenticación de GitHub
+- No existía ninguna: sin `gh`, sin `credential.helper` configurado, `fer` sin `~/.ssh` en F y `ssh -T git@github.com` respondió *Permission denied (publickey)*.
+- Se instaló GitHub CLI 2.100.0 con `winget --scope user`, previa autorización del usuario. Es un componente **nuevo**, no una reinstalación. Ruta: `C:\Users\Fer\AppData\Local\Microsoft\WinGet\Packages\GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe\bin\gh.exe`. Aviso práctico: no está en el PATH de las terminales ya abiertas.
+- `gh auth login` lo ejecutó **el usuario**, porque es interactivo y la sesión de Claude Code no lo es. Se eligió el flujo de código de dispositivo para poder autorizar desde el navegador del Mac.
+- Verificado después por Claude Code, no dado por bueno: cuenta activa `interemprex`, tipo `User`, protocolo `https`, scopes `gist`, `read:org`, `repo`, `workflow`.
+- **Detalle que conviene recordar**: la cuenta de GitHub es `interemprex`, pero los commits se firman con `dbenitezc68-beep <dbenitezc68@gmail.com>`. No es un error, pero autor y titular de la cuenta no coinciden.
+
+### Creación y publicación
+- Se comprobó primero que el nombre estuviera libre: `gh repo view interemprex/interemprex-ia-local` devolvió *Could not resolve to a Repository*, y `gh repo list interemprex` no devolvió ninguno. La cuenta no tenía repositorios. No se vinculó nada ajeno.
+- Creado **privado y vacío**, y verificada la privacidad **antes** de subir nada: `isPrivate: true`, `visibility: PRIVATE`, `isEmpty: true`.
+- Remoto `origin` por HTTPS y `git push -u origin main`.
+
+### Verificación posterior a la publicación
+| Comprobación | Resultado |
+|---|---|
+| URL | https://github.com/interemprex/interemprex-ia-local |
+| Privacidad | `isPrivate: true`, `visibility: PRIVATE` |
+| Rama por defecto | `main` |
+| HEAD local | `b48e5ead2f185a4832be3af7556858aabfec1ace` |
+| HEAD remoto (`git ls-remote`) | `b48e5ead2f185a4832be3af7556858aabfec1ace` — idéntico |
+| Commits locales sin publicar | 0 |
+| `git status -sb` | `## main...origin/main`, sin divergencia |
+| Contenido remoto | los 10 archivos previstos; ni `.venv` ni `__pycache__` |
+
+### Correcciones documentales derivadas
+Cuatro afirmaciones quedaron falsas al crear el repositorio y se corrigieron: `AGENTS.md` («GitHub requiere configuración pendiente»), `GUIA_CONTINUIDAD.md` («hoy GitHub no está verificado»), y en este archivo las líneas de pendientes sobre GitHub. `README.md` incorpora ahora la URL del repositorio privado.
+
+### Pendientes tras este paso
+- El propietario de la carpeta sigue siendo `CodexSandboxOffline`. La excepción `safe.directory` tapa el síntoma, no la causa.
+- Este archivo contiene IPs de Tailscale (100.86.251.101, 100.120.229.23) y la huella SSH pública de F. En un repositorio **privado** es aceptable y no son secretos, pero habría que revisarlo antes de hacerlo público alguna vez.
+- No hay ramas de trabajo ni flujo de pull request: se trabaja directamente sobre `main`.
+- `gh` no está en el PATH de terminales abiertas antes de su instalación.
+- Sin cambios en lo demás: arranque persistente de Ollama, RAG y fuentes documentales, streaming y persistencia entre sesiones siguen pendientes.
+
+### Siguiente paso propuesto
+Elegir entre streaming en el chat (cambio pequeño) o empezar la ingesta documental con fuentes, que es el objetivo inicial del proyecto. La ingesta documental requiere un modelo avanzado de IA por el diseño de troceado, almacenamiento y citación.
