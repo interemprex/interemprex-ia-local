@@ -2,6 +2,8 @@
 
 Desarrollar un asistente local para INTEREMPREX y enseñar al usuario los fundamentos mientras se construye.
 
+Contexto empresarial confirmado por el usuario el 2026-09-13: INTEREMPREX tiene como objetivo desarrollar aplicaciones a medida para negocios y su mantenimiento, incluyendo desarrollo web, automatización e internacionalización. Leer CONTEXTO_NEGOCIO.md; esta definición prevalece sobre las descripciones comerciales anteriores. Los entregables, tarifas y condiciones no aprobados deben tratarse como propuestas o pendientes.
+
 - Explicar brevemente qué se cambia, para qué sirve y cómo se comprueba.
 - Trabajar en pasos pequeños y verificables, manteniendo el objetivo documental inicial.
 - Preferencia explícita del usuario: antes de una fase que requiera especial dedicación, esfuerzo o razonamiento complejo, mostrar «Recomendación: usar un modelo avanzado de IA» y explicar brevemente el motivo. No hace falta este aviso para comprobaciones sencillas. No afirmar que se ha cambiado de modelo automáticamente.

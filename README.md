@@ -1,56 +1,86 @@
 # INTEREMPREX — IA local
 
-Proyecto de aprendizaje y desarrollo de un asistente documental local con fuentes, seguido de integraciones con LeadFinder y CRM.
+Asistente documental local para INTEREMPREX: responde preguntas sobre los documentos de la empresa mostrando siempre de dónde sale cada cosa. Proyecto de aprendizaje además de herramienta.
 
-Todo se ejecuta en el equipo F (DESKTOP-T6C436J). El Mac es cliente remoto por VS Code Remote SSH; el equipo D se añadirá después. `localhost` siempre se refiere a la máquina donde corre el programa, que aquí es F.
+INTEREMPREX tiene como objetivo desarrollar aplicaciones a medida para negocios y su mantenimiento, incluyendo desarrollo web, automatización e internacionalización. CONTEXTO_NEGOCIO.md recoge la definición confirmada el 13 de septiembre de 2026.
+
+Todo se ejecuta en el equipo F (DESKTOP-T6C436J). El Mac es cliente remoto por VS Code Remote SSH; el equipo D se añadirá después y **su acceso no está probado**. `localhost` siempre se refiere a la máquina donde corre el programa, que aquí es F.
+
+## Estado: primera versión de uso interno
+Funciona y se usa, pero no es un producto. Los documentos que consulta son **borradores** y sus límites están descritos más abajo sin adornos. No debe usarse como fuente de condiciones comerciales.
+
+## Arranque diario
+Un solo comando, en la terminal PowerShell de F (vale la remota de VS Code):
+
+```powershell
+.\iniciar_asistente.ps1
+```
+
+Comprueba el entorno, reutiliza Ollama si ya responde o lo arranca en segundo plano si no, y abre el asistente. Al salir con `/salir`, Ollama queda activo para la siguiente consulta. La secuencia completa del día está en GUIA_CONTINUIDAD.md.
 
 ## Referencias del proyecto
 - ESTADO_PROYECTO.md: estado verificado y siguiente paso. Leer al comenzar cada sesión.
-- GUIA_CONTINUIDAD.md: cómo arrancar cada día y cómo retomar tras apagar F.
+- CONTEXTO_NEGOCIO.md: objetivo empresarial vigente y alcance confirmado.
+- GUIA_CONTINUIDAD.md: arranque diario y cómo retomar tras apagar F.
 - TRASPASO_CLAUDE.md: contexto de continuidad para Claude.
 - CLAUDE.md y AGENTS.md: instrucciones de trabajo y coordinación entre asistentes.
 
 ## Arquitectura actual
 MacBook Pro → Tailscale → OpenSSH → VS Code remoto en F → Python → Ollama → qwen3:8b.
-Ollama 0.33.3 sirve en `127.0.0.1:11434` de F. Solo se usa la biblioteca estándar de Python: no hay dependencias que instalar.
+Ollama 0.33.3 sirve en `127.0.0.1:11434` de F. Solo biblioteca estándar de Python: no hay dependencias que instalar.
 
 ## Programas
-- `comprobar_entorno.py`: muestra equipo, intérprete y si se está dentro del entorno virtual.
-- `probar_ollama.py`: una única consulta por ejecución. Sirve para comprobar que la cadena Python → API → modelo responde.
-- `chat_ollama.py`: chat de terminal con historial durante la sesión.
+- `iniciar_asistente.ps1`: arranque en un comando.
+- `crear_copia_seguridad.ps1`: ZIP fechado de respaldo, fuera del proyecto.
+- `asistente_documental.py`: el asistente. Busca los fragmentos pertinentes y pide al modelo una respuesta apoyada solo en ellos.
+- `consultar_documentos.py`: solo búsqueda, sin modelo. Útil si Ollama no está disponible.
+- `chat_ollama.py`: chat de terminal con historial de sesión, anterior a la consulta documental. Se conserva.
+- `probar_ollama.py`: una consulta suelta, para comprobar que la cadena responde.
+- `comprobar_entorno.py`: identifica equipo, intérprete y entorno virtual.
 
-## Uso
-Requiere que Ollama esté sirviendo en F. Si no lo está, arrancarlo según GUIA_CONTINUIDAD.md.
+Si se prefiere lanzarlos a mano:
 
 ```powershell
-.\.venv\Scripts\python.exe comprobar_entorno.py
-.\.venv\Scripts\python.exe probar_ollama.py "Explica qué es una variable en Python."
-.\.venv\Scripts\python.exe chat_ollama.py
+.\.venv\Scripts\python.exe asistente_documental.py
+.\.venv\Scripts\python.exe consultar_documentos.py
 ```
 
-Dentro del chat: `/salir` termina, `/limpiar` olvida el historial. También salen Ctrl+C y Ctrl+D.
-Cada turno imprime una línea `[contexto: N intercambios previos, ~M tokens estimados]` para que se vea qué se está enviando al modelo.
+## Cómo funciona la consulta documental
+Los tres documentos de `data/documentos/` se parten en secciones: 23 en total. Cada sección conserva su identificador, versión, estado y número, leídos de la cabecera del archivo.
 
-## Cómo funciona el historial del chat
-El modelo no recuerda nada por sí mismo: en cada turno se le reenvía la conversación entera. `chat_ollama.py` guarda los intercambios de la sesión y aplica dos límites al construir cada petición:
+1. **Busca** la sección más parecida a la pregunta, puntuando al estilo BM25: los términos comunes pesan poco, repetir suma cada vez menos y coincidir en el título de la sección vale el triple. Es coincidencia de **palabras, no de significado**.
+2. **Entrega al modelo** hasta tres secciones, con su estado por delante del texto. Si una sección no cabe entera en el contexto, se descarta completa: nunca se corta, porque partirla podría dejar fuera la condición que matiza el resto.
+3. **Muestra** la respuesta, los **Fragmentos consultados** con su procedencia y el **texto literal** de cada uno para contrastar.
 
-1. **Número de turnos.** `MAX_INTERCAMBIOS = 8` **incluye el turno actual**, así que viajan como mucho 7 intercambios previos más la pregunta. Se descartan intercambios completos, nunca media pareja pregunta/respuesta.
-2. **Tamaño.** Presupuesto de entrada = 4096 de contexto − 512 reservados para la respuesta − 128 de margen = 3456 tokens estimados. Si el historial no cabe, se sueltan intercambios enteros del más antiguo al más reciente.
+La procedencia la añade el programa, no el modelo. En las pruebas se comprobó que el modelo reproduce mal los identificadores y las versiones, así que se le prohíbe escribir referencias.
 
-Si una pregunta no cabe ni siquiera ella sola, se rechaza antes de enviarla indicando cuánto sobra, y no se guarda en el historial.
+### Modo literal
+Si entre las secciones encontradas hay un **procedimiento pendiente de aprobación**, el programa **no llama al modelo**: muestra el texto original con su estado y explica por qué. El motivo es un fallo comprobado: al reformular esas secciones, el modelo tiende a presentarlas como la forma de trabajar vigente, y no lo son.
 
-## Limitaciones actuales
-Conviene tenerlas presentes antes de confiar en el chat:
+La regla es deliberadamente prudente. Se activa aunque solo una de las secciones encontradas sea una propuesta y aunque esa sección sea poco pertinente.
 
-- **Sin memoria entre sesiones.** Al cerrar el programa se pierde todo. No hay base de datos ni fichero de conversaciones.
-- **Sin documentos ni fuentes.** Todavía no hay RAG: el chat no conoce ningún documento de INTEREMPREX y puede inventar si se le pregunta por ellos.
-- **Olvida lo antiguo dentro de la propia sesión.** Comprobado: con 10 turnos, el turno 10 recordaba los turnos 3 a 9 y había perdido los dos primeros.
-- **El recuento de tokens es una estimación, no una medida exacta.** No usa el tokenizador real del modelo. Frente al recuento real de qwen3:8b sobra margen con prosa (+35%) y falta con texto lleno de cifras (−19%). Si se queda corta, Ollama recorta el principio del prompt por su cuenta y el chat pierde memoria sin avisar.
-- **Sin streaming.** La respuesta aparece de golpe tras `Pensando...`.
-- **El historial crece en memoria** mientras dura la sesión; no está acotado.
-- **Ollama no arranca solo.** Hay que lanzar `ollama serve` a mano en F y dejar esa terminal abierta. No hay encendido remoto de F ni acceso probado desde fuera de casa.
+## Limitaciones conocidas
+Medidas, no supuestas:
+
+- **Hoy la mayoría de consultas no se redactan.** Siete de las 23 secciones son procedimientos propuestos, y en una batería de 10 preguntas el modo literal se activó en 7. Es el lado seguro del error, pero conviene saberlo: a menudo se comporta como un buscador con explicación.
+- **La búsqueda compara palabras, no significados.** Si preguntas con un sinónimo que el documento no usa, no encuentra nada. Cuando no hay resultados, muestra el índice de secciones para poder ir directo.
+- **Un resultado no es una respuesta.** La puntuación mide parecido de palabras: una puntuación alta puede acompañar a un fragmento que no sirve.
+- **«No encontrado» no es una negativa comercial.** Que algo no esté escrito en tres borradores no significa que INTEREMPREX no lo ofrezca.
+- **Solo se envían hasta tres secciones.** Una respuesta repartida entre más documentos quedará incompleta sin avisar.
+- **Sin historial**: cada pregunta parte de cero.
+- **El recuento de tokens es una estimación.** No usa el tokenizador real; sobreestima alrededor de un 24%, que es el lado seguro.
+- **Ollama no arranca solo tras reiniciar Windows.** `iniciar_asistente.ps1` hay que lanzarlo a mano. No hay servicio, ni tarea programada, ni encendido remoto de F, ni acceso probado desde fuera de casa.
+- **Los documentos son borradores** en versión 0.2, con decisiones comerciales sin resolver.
+
+## Copia de seguridad
+```powershell
+.\crear_copia_seguridad.ps1
+```
+Genera un ZIP fechado en `C:\Users\Fer\Documents\Copias-INTEREMPREX`, fuera del proyecto, con código, documentación y los documentos de negocio. Incluye un inventario. Quedan fuera `.venv`, modelos, cachés, registros y conversaciones.
+
+Protege frente a cambios o borrados accidentales. **No protege frente a una avería de F**: está en el mismo disco.
 
 ## Colaboración
 Los archivos en disco son la referencia común. Los adjuntos de Claude web son copias que hay que actualizar a mano; no hay sincronización automática entre chats. Un solo asistente edita el árbol de trabajo a la vez y los demás revisan después.
 
-Repositorio privado en GitHub: https://github.com/interemprex/interemprex-ia-local (cuenta `interemprex`). `.venv`, modelos, credenciales, claves y documentos privados quedan fuera del control de versiones mediante `.gitignore`.
+Repositorio privado en GitHub: https://github.com/interemprex/interemprex-ia-local (cuenta `interemprex`). Quedan fuera del control de versiones, mediante `.gitignore`: `.venv`, `data/` (documentos de negocio, conversaciones y evidencias de prueba), `logs/`, cachés, modelos y credenciales.
