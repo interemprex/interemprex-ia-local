@@ -820,3 +820,22 @@ Documentación: `README.md`, `CLAUDE.md`, `AGENTS.md`, `CONTEXTO_NEGOCIO.md`, `E
 `data/` entero, por decisión de diseño: los tres documentos de negocio, los registros de conversaciones de `data/asistente/` y `data/consultas/`, y las evidencias de las pruebas P0 de `data/pruebas/`. También `logs/`, `.venv`, `__pycache__` y los ZIP de respaldo.
 
 Consecuencia que conviene tener presente: **los documentos de negocio y las evidencias de prueba no tienen respaldo en GitHub**. Su única copia está en F y en los ZIP locales, que están en el mismo disco.
+
+### Verificación posterior a la publicación
+Commit publicado: `09c1bd433067e6cbcc71edf272bf83886bc60556` (`09c1bd4`), 10 archivos, 1677 inserciones y 48 supresiones, sobre la rama `main` existente. Sin reescribir historial y sin `force push`.
+
+| Comprobación | Resultado |
+|---|---|
+| URL | https://github.com/interemprex/interemprex-ia-local |
+| Privacidad tras publicar | `isPrivate: true`, `visibility: PRIVATE` |
+| Rama por defecto | `main` |
+| HEAD local | `09c1bd433067e6cbcc71edf272bf83886bc60556` |
+| HEAD remoto (`git ls-remote`) | idéntico |
+| Commits sin publicar / sin traer | 0 y 0 |
+| Árbol de trabajo | limpio |
+| Contenido remoto | 15 archivos: los 7 programas y scripts, `.gitignore` y los 7 documentos |
+| `data/` en el remoto | HTTP 404: no existe, como estaba previsto |
+
+Historial publicado, tres commits: `b48e5ea` → `e7bc39d` → `09c1bd4`.
+
+Queda pendiente de decidir, sin relación con esta publicación: llevar una copia fuera de F, el arranque desatendido de Ollama, las decisiones comerciales sobre los borradores y el fallo P3.
